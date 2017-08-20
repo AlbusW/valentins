@@ -94,7 +94,6 @@ require(["jquery", "swiper", "datepicker", "waypoints"], function ($, Swiper, da
 
     function renderActive() {
         var scrollTop = $(window).scrollTop();
-        console.log('renderActive')
         var i = 0;
         if ($(window).height() + 20 <= scrollTop && scrollTop <= $(".mode").offset().top - 100) {
             i = 1;
