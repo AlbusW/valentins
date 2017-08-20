@@ -1,8 +1,14 @@
-/**
- * Created by Alice on 2016/5/9.
- */
-
 require(["jquery", "swiper", "datepicker", "waypoints"], function ($, Swiper, datepicker, waypoint) {
+    var interval = 1000;
+    var animateType = 'swing';
+    var navMap = {
+        '主页' : 'main',
+        '品牌' : 'brand',
+        '心情' : 'mode',
+        '菜单' : 'food',
+        '活动' : 'show',
+        '预定' : 'order'
+    };
 
     //动态调整首屏高度
     function fullHeight() {
@@ -49,7 +55,6 @@ require(["jquery", "swiper", "datepicker", "waypoints"], function ($, Swiper, da
         });
     }
 
-
     function navRel(navName) {
         $(navName).css({
             "position": "relative",
@@ -58,14 +63,12 @@ require(["jquery", "swiper", "datepicker", "waypoints"], function ($, Swiper, da
         })
     }
 
-
     var mySwiper = new Swiper('.swiper-container', {
         autoplay: 6000,
         loop: true,
         autoplayDisableOnInteraction: false,
         direction: 'horizontal',
         speed: 1000,
-
 
         // 如果需要分页器
         pagination: '.swiper-pagination',
@@ -89,67 +92,87 @@ require(["jquery", "swiper", "datepicker", "waypoints"], function ($, Swiper, da
         }
     }
 
-    //方法们排队执行
+    function renderActive() {
+        var scrollTop = $(window).scrollTop();
+        console.log('renderActive')
+        var i = 0;
+        if ($(window).height() + 20 <= scrollTop && scrollTop <= $(".mode").offset().top - 100) {
+            i = 1;
+        }
+        if ($(".mode").offset().top - 100 <= scrollTop && scrollTop <= $(".food").offset().top - 100) {
+            i = 2;
+        }
+        if ($(".food").offset().top - 100 <= scrollTop && scrollTop <= $(".show").offset().top - 100) {
+            i = 3;
+        }
+        if ($(".show").offset().top - 100 <= scrollTop && scrollTop <= $(".order").offset().top - 100) {
+            i = 4;
+        }
+        if ($(".order").offset().top - 100 <= scrollTop && scrollTop <= $("body").height() - $(window).height()) {
+            i = 5;
+        }
+        $(".m-nav .navlist , .x-nav a").removeClass("navcur");
+        $(".m-nav .navlist").eq(i).addClass("navcur");
+        $(".x-nav a").eq(i).addClass("navcur");
+    }
+
+    //函数节流
+    function throttle (func, wait) {
+        var timeout, context, args, result;
+        var previous = 0;
+        var throttled = function() {
+            var now = new Date().getTime();
+            if (!previous) previous = now;
+            var remaining = wait - (now - previous);
+            context = this;
+            args = arguments;
+            if (!timeout){
+                timeout = setTimeout(function () {
+                    previous = now;
+                    timeout = null;
+                    result = func.apply(context, args);
+                    if (!timeout) context = args = null;
+                }, remaining);
+            }
+            return result;
+        }
+        return throttled;
+    }
+
+    //函数调用
     $(function () {
         $(window).scrollTop(0);
         fullHeight();
         menuH();
         autoSlider(".headSlider", 10000);
-        animate(".about");
-        animate(".mode");
-        animate(".food");
-        animate(".list");
-        animate(".menu");
-        animate(".show");
-        animate(".order");
-        animate(".footer");
+        var animateList = ['about','mode','food','list','menu','show','order','footer'];
+        animateList.forEach(function (item,index) {
+            animate('.'+item);
+        });
 
         //gotop
         $(".toTop").on("click", function () {
             $("html,body").stop().animate({scrollTop: "0px"}, 1600, "swing");
-            return false;
         });
 
         //nav锚点动画
         $(".m-nav").on("click", function (e) {
-            if ($(e.target).text() == "主页") {
-                $("html,body").stop().animate({scrollTop: "0px"}, 1000, "swing");
-            } else if ($(e.target).text() == "品牌") {
-                $("html,body").stop().animate({scrollTop: $(window).height() + 20 + "px"}, 1000, "swing");
-            } else if ($(e.target).text() == "心情") {
-                $("html,body").stop().animate({scrollTop: $(".mode").offset().top - 70 + "px"}, 1000, "swing");
-            } else if ($(e.target).text() == "菜单") {
-                $("html,body").stop().animate({scrollTop: $(".food").offset().top - 70 + "px"}, 1000, "swing");
-            } else if ($(e.target).text() == "活动") {
-                $("html,body").stop().animate({scrollTop: $(".show").offset().top - 70 + "px"}, 1000, "swing");
-            } else if ($(e.target).text() == "预定") {
-                $("html,body").stop().animate({scrollTop: $(".order").offset().top - 70 + "px"}, 1000, "swing");
+            var text = $(e.target).text();
+            if (navMap[text]) {
+                $("html,body").stop().animate({scrollTop: navMap[text] == 'main' ? '0px' : (navMap[text] == 'brand' ? $(window).height()+20 : $('.'+navMap[text]).offset().top - 70 + "px")}, interval, animateType);
+                $(e.target).addClass("navcur");
             }
-
-            $(e.target).addClass("navcur");
-            return false;
         });
 
         $(".x-nav").on("click", function (e) {
-            if ($(e.target).text() == "主页") {
-                $("html,body").stop().animate({scrollTop: "0px"}, 1000, "swing");
-            } else if ($(e.target).text() == "品牌") {
-                $("html,body").stop().animate({scrollTop: $(".about").offset().top*1.5 + "px"}, 1000, "swing");
-            } else if ($(e.target).text() == "心情") {
-                $("html,body").stop().animate({scrollTop: $(".mode").offset().top+ "px"}, 1000, "swing");
-            } else if ($(e.target).text() == "菜单") {
-                $("html,body").stop().animate({scrollTop: $(".food").offset().top + "px"}, 1000, "swing");
-            } else if ($(e.target).text() == "活动") {
-                $("html,body").stop().animate({scrollTop: $(".show").offset().top+ "px"}, 1000, "swing");
-            } else if ($(e.target).text() == "预定") {
-                $("html,body").stop().animate({scrollTop: $(".order").offset().top+ "px"}, 1000, "swing");
+            var text = $(e.target).text();
+            if (navMap[text]) {
+                $("html,body").stop().animate({scrollTop: navMap[text] == 'main' ? '0px' : (navMap[text] == 'brand'  ? $(".about").offset().top*1.5 + "px" : $('.'+navMap[text]).offset().top + "px")}, interval, animateType);
+                $(e.target).addClass("navcur");
+                $(".x-navCtrl").removeClass("active");
             }
-
-            $(e.target).addClass("navcur");
-            $(".x-navCtrl").removeClass("active");
             $("body").removeClass("nav-toggle");
             $("html,body").css({overflow: ""});
-            return false;
         });
 
         //移动端导航
@@ -157,14 +180,11 @@ require(["jquery", "swiper", "datepicker", "waypoints"], function ($, Swiper, da
             if ($(this).hasClass("active")) {
                 $(this).removeClass("active");
                 $("body").removeClass("nav-toggle");
-                $("html,body").css({overflow: ""});
             } else {
                 $(this).addClass("active");
                 $("body").addClass("nav-toggle");
-                $("html,body").css({overflow: "hidden"});
             }
-
-            return false;
+            $("html,body").css({overflow: $(this).hasClass("active") ? '' : 'hidden'});
         });
 
         //处理一系列scroll事件
@@ -177,30 +197,8 @@ require(["jquery", "swiper", "datepicker", "waypoints"], function ($, Swiper, da
             } else {
                 navRel(".m-nav");
             }
-
-
-            var i = 0;
-            if ($(window).height() + 20 <= scrollTop && scrollTop <= $(".mode").offset().top - 100) {
-                i = 1;
-            }
-            if ($(".mode").offset().top - 100 <= scrollTop && scrollTop <= $(".food").offset().top - 100) {
-                i = 2;
-            }
-            if ($(".food").offset().top - 100 <= scrollTop && scrollTop <= $(".show").offset().top - 100) {
-                i = 3;
-            }
-            if ($(".show").offset().top - 100 <= scrollTop && scrollTop <= $(".order").offset().top - 100) {
-                i = 4;
-            }
-            if ($(".order").offset().top - 100 <= scrollTop && scrollTop <= $("body").height() - $(window).height()) {
-                i = 5;
-            }
-            $(".m-nav .navlist , .x-nav a").removeClass("navcur");
-            $(".m-nav .navlist").eq(i).addClass("navcur");
-            $(".x-nav a").eq(i).addClass("navcur");
-
+            throttle(renderActive,100)();
         });
-
 
         $("#date").datepicker({
             format: 'yyyy/mm/dd'
